@@ -1,30 +1,120 @@
-<!DOCTYPE html>
 <html>
 <head>
-<link href="//vjs.zencdn.net/7.2/video-js.min.css" rel="stylesheet">
-<script src="//vjs.zencdn.net/7.2/video.min.js"></script>
+    <title>JSPatch Convertor</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="./css/main.css">
+    <link rel="icon" type="image/png" href="./img/favicon.png">
 </head>
 <body>
-<h1>这是我使用github pages搭建的个人站点。</h1>
-<div id=“video”>
-<video
-    id="my-player"
-    class="video-js"
-    controls
-    preload="auto"
-    poster="//vjs.zencdn.net/v/oceans.png"
-    data-setup='{}'>
-  <source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4"></source>
-  <source src="//vjs.zencdn.net/v/oceans.webm" type="video/webm"></source>
-  <source src="//vjs.zencdn.net/v/oceans.ogv" type="video/ogg"></source>
-  <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a
-    web browser that
-    <a href="http://videojs.com/html5-video-support/" target="_blank">
-      supports HTML5 video
-    </a>
-  </p>
-</video>
-</div>
+    <div class="main" id="main">
+        <h1>JSPatch Convertor</h1>
+        <div id="loading">Loading ... </div>
+        <div id="convertor">
+            <div class="textarea-ctn">
+                <div class="item" id="objcItem">
+                    <h2 class="title-oc">OC</h2>
+                    <textarea id="objcTextarea" wrap="off"></textarea>
+                </div>
+                <div class="item" id="jsItem">
+                    <h2 class="title-js">JS</h2>
+                    <textarea id="jsTextarea" wrap="off"></textarea>
+                    <div class="error-tips" id="errorTips">Syntax Error</div>
+                </div>
+            </div>
+            <div class="action">
+                <a href="javascript:void(0)" id="convertBtn">Convert</a>
+            </div>
+        </div>
+    </div>
+    <div class="intro">
+        <div class="wrapper">
+            <div class="whats-jspatch">
+                <h3>What's JSPatch Convertor</h3>
+                <p><a href="https://github.com/bang590/JSPatch">JSPatch</a> bridges Objective-C and JavaScript using the Objective-C runtime. You can call any Objective-C class and method in JavaScript by just including a small engine. That makes the APP obtaining the power of script language: add modules or replacing Objective-C code to fix bugs dynamically.</p>
+                <p>JSPatch Convertor is a tool that converts Objective-C code to JSPatch script automatically.</p>
+            </div>
+            <div class="supported">
+                <div class="icon">✓</div>
+                <h3>SUPPORTED</h3>
+                <ul>
+                    <li>Method declaration</li>
+                    <li>Method calling</li>
+                    <li>Block syntax</li>
+                    <li>Variable declaration</li>
+                    <li>Getting/Setting Property</li>
+                    <li>NSString / NSArray / nil ...</li>
+                </ul>
+            </div>
+            <div class="unsupported">
+                <div class="icon">✕</div>
+                <h3>UNSUPPORTED</h3>
+                <ul>
+                    <li>Macro / constant variable / Enum</li>
+                    <li>C function calling</li>
+                    <li>GCD functions</li>
+                    <li>Pointer / Struct</li>
+                    <li>Getting / Setting private variable</li>
+                </ul>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div class="footer">
+        Code licensed under MIT. <a href="https://github.com/bang590/JSPatchConvertor">Fork JSPatch-Convertor on github</a>
+    </div>
+    <script>
+        function $(id) {
+            return document.getElementById(id)
+        }
+        var minHeight = 570;
+        if (document.body.clientHeight > minHeight) {
+            $('main').style.height = document.body.clientHeight + 'px';
+            $('objcItem').style.height = document.body.clientHeight - 240 + 'px';
+            $('jsItem').style.height = document.body.clientHeight - 240 + 'px';
+            $('jsTextarea').style.height = document.body.clientHeight - 270 + 'px';
+            $('objcTextarea').style.height = document.body.clientHeight - 270 + 'px';
+        }
+    </script>
+    <script src="./js/lib/require.js"></script>
+    <script>
+    window.onload = function() {
+        var sampleScript = [
+            '@implementation SampleClass',
+            '- (void)requestUrl:(NSString *)url param:(NSDictionary *)dict callback:(JPCallback)callback {',
+            '    [super requestUrl:url param:dict callback:callback];',
+            '    JPRequest *obj = [[JPRequest alloc] initWithUrl:url param:dict];',
+            '    obj.successBlock = ^(id data, NSError *err) {',
+            '        NSString *content = [JPParser parseData:data];',
+            '        if (callback) callback(@{',
+            '            @"content": content',
+            '        }, err);',
+            '        [self.dataSource refresh];',
+            '        self.handleRequestSuccess(data);',
+            '    };',
+            '}',
+            '@end',
+        ].join('\n');
+
+        $('objcTextarea').value = sampleScript;
+        
+        var convertor = require('./js/JPConvertor').convertor
+
+        $('convertBtn').onclick = function() {
+            var script = $('objcTextarea').value.replace('\n', '')
+            $('errorTips').style.display = "none";
+            convertor(script, function(result, error) {
+                if (error) {
+                    $('errorTips').style.display = "block";
+                    console.error(error)
+                }
+                $('jsTextarea').value = result;
+            });
+        }
+        $('objcTextarea').focus();
+        $('loading').style.display = "none";
+        $('convertor').style.display = "block";
+    }
+    </script>
 </body>
+
 </html>
